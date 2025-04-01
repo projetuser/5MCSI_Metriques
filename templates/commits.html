@@ -1,74 +1,40 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Histogramme des Commits</title>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Commits à la minute</title>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script type="text/javascript">
-        google.charts.load("current", {packages: ["corechart", "bar"]});
-        google.charts.setOnLoadCallback(drawChart);
+      google.charts.load("current", {packages:["corechart"]});
+      google.charts.setOnLoadCallback(drawBackgroundColor);
 
-        function drawChart() {
-            var data = new google.visualization.DataTable();
-            data.addColumn('string', 'Minute');
-            data.addColumn('number', 'Nombre de Commits');
+      function drawBackgroundColor() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Minute');
+        data.addColumn('number', 'Commits');
 
-            // Ajouter les données dynamiquement depuis Flask (utilisation de Jinja)
-            {% for data_point in commit_data %}
-                data.addRow([ '{{ data_point.minute }}', {{ data_point.count }} ]);
-            {% endfor %}
+        // Insérer les données de commit dans le graphique
+        {% for minute, count in minute_count.items() %}
+          data.addRow(['Minute {{ minute }}', {{ count }}]);
+        {% endfor %}
 
-            var options = {
-                title: 'Nombre de Commits par Minute',
-                chartArea: { width: '80%' },
-                hAxis: {
-                    title: 'Minute',
-                    minValue: 0
-                },
-                vAxis: {
-                    title: 'Nombre de Commits'
-                }
-            };
+        var options = {
+          title: 'Nombre de Commits par Minute',
+          legend: { position: 'none' },
+          hAxis: {
+            title: 'Minute'
+          },
+          vAxis: {
+            title: 'Nombre de Commits'
+          }
+        };
 
-            var chart = new google.visualization.BarChart(document.getElementById('chart_div'));
-            chart.draw(data, options);
-        }
+        var chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+      }
     </script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f7fa;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-        }
-        h1 {
-            color: #4CAF50;
-            margin-top: 30px;
-        }
-        .container {
-            width: 80%;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-        }
-        #chart_div {
-            margin: 30px auto;
-            width: 900px;
-            height: 500px;
-        }
-    </style>
-</head>
-<body>
-
-    <h1>Histogramme des Commits par Minute</h1>
-
-    <div class="container">
-        <div id="chart_div"></div>
-    </div>
-
-</body>
+  </head>
+  <body>
+    <h1>Nombre de Commits par Minute</h1>
+    <div id="chart_div" style="width: 900px; height: 500px;"></div>
+  </body>
 </html>
