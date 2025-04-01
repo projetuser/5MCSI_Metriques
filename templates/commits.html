@@ -37,19 +37,24 @@
         .commit-item:nth-child(odd) {
             background-color: #e7e7e7;
         }
-        .commit-time {
+        .commit-minute {
+            font-weight: bold;
             color: #555;
-            font-size: 1.1em;
+        }
+        .commit-count {
+            color: #4CAF50;
+            font-size: 1.2em;
         }
     </style>
 </head>
 <body>
-    <h1>Historique des Commits</h1>
+    <h1>Nombre de Commits par Minute</h1>
     <div class="container">
         <ul class="commits-list">
-            {% for commit_time in commit_times %}
+            {% for data in commit_data %}
                 <li class="commit-item">
-                    <p>Commit à la minute : <span class="commit-time">{{ commit_time }}</span></p>
+                    <p>Minute : <span class="commit-minute">{{ data.minute }}</span></p>
+                    <p>Nombre de commits : <span class="commit-count">{{ data.count }}</span></p>
                 </li>
             {% endfor %}
         </ul>
