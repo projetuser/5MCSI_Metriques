@@ -3,6 +3,7 @@ from flask import render_template
 from flask import json
 from datetime import datetime
 from urllib.request import urlopen
+from collections import Counter
 import sqlite3
                                                                                                                                        
 app = Flask(__name__)                                                                                                                  
@@ -36,31 +37,34 @@ def contact():
     return render_template("contact.html")
 
 @app.route('/commits/')
-def commits():
+def commits_page():
+    return render_template('commits.html')
+
+import requests  # <-- Tu avais oublié cette importation
+
+@app.route('/api/commits-per-minute/')
+def extract_commits_per_minute():
     url = 'https://api.github.com/repos/projetuser/5MCSI_Metriques/commits'
-    
-    try:
-        response = urlopen(url)
-        data = json.loads(response.read().decode('utf-8'))
-    except Exception as e:
-        data = []  # Si l'API ne répond pas, on utilise une liste vide
+    headers = {'User-Agent': 'FlaskApp'}
 
-    commit_minutes = []
-    
+    response = requests.get(url, headers=headers)
+    data = response.json()
+
+    minutes = []
     for commit in data:
-        commit_date = commit['commit']['author']['date']
-        commit_datetime = datetime.strptime(commit_date, '%Y-%m-%dT%H:%M:%SZ')
-        commit_minutes.append(commit_datetime.strftime('%Y-%m-%d %H:%M'))
+        try:
+            date_str = commit['commit']['author']['date']
+            date_object = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%SZ')
+            minutes.append(date_object.minute)
+        except Exception:
+            continue
 
-    commit_count = Counter(commit_minutes)
+    compteur = Counter(minutes)
+    chart_data = [["Minute", "Commits"]]
+    for minute in range(60):
+        chart_data.append([str(minute), compteur.get(minute, 0)])
 
-    # Si aucun commit n'est trouvé, on ajoute une valeur par défaut
-    if not commit_count:
-        commit_data = [{'minute': 'Aucun commit', 'count': 0}]
-    else:
-        commit_data = [{'minute': minute, 'count': count} for minute, count in commit_count.items()]
-    
-    return render_template('commits.html', commit_data=commit_data)
+    return jsonify(chart_data)
 
 if __name__ == "__main__":
   app.run(debug=True)
