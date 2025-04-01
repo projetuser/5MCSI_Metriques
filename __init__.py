@@ -35,24 +35,56 @@ def mongraphique2():
 def contact():
     return render_template("contact.html")
 
-@app.route('/commits/')
+DB_NAME = "commits.db"
+GITHUB_API_URL = "https://api.github.com/repos/projetuser/5MCSI_Metriques/commits"
+
+# Création de la table si elle n'existe pas
+def init_db():
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS commits (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            commit_time TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+# Récupération des commits depuis GitHub et stockage dans SQLite
+def fetch_commits():
+    response = urlopen(GITHUB_API_URL)
+    commits = json.loads(response.read())
+
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+
+    for commit in commits:
+        commit_time = commit["commit"]["author"]["date"]
+        c.execute("INSERT INTO commits (commit_time) VALUES (?)", (commit_time,))
+
+    conn.commit()
+    conn.close()
+
+# Exécuter une seule fois au début
+init_db()
+fetch_commits()
+
+@app.route("/commits/")
 def commits():
-    url = 'https://api.github.com/repos/projetuser/5MCSI_Metriques/commits'
-    response = urlopen(url)
-    data = json.loads(response.read().decode('utf-8'))
+    conn = sqlite3.connect("commits.db")
+    c = conn.cursor()
+    c.execute("SELECT commit_time FROM commits")
+    commits = c.fetchall()
+    conn.close()
 
-    # Extraire les minutes des commits
-    commit_minutes = []
-    for commit in data:
-        commit_date = commit['commit']['author']['date']
-        # Convertir la date et extraire la minute
-        date_object = datetime.strptime(commit_date, '%Y-%m-%dT%H:%M:%SZ')
-        commit_minutes.append(date_object.minute)
+    # Convertir les dates en minutes
+    commit_minutes = [datetime.strptime(commit[0], "%Y-%m-%dT%H:%M:%SZ").minute for commit in commits]
 
-    # Comptabiliser le nombre de commits par minute
-    minute_count = {minute: commit_minutes.count(minute) for minute in set(commit_minutes)}
+    # Compter les commits par minute
+    commit_counts = Counter(commit_minutes)
 
-    return render_template('commits.html', minute_count=minute_count)
+    return render_template("commits.html", commit_counts=commit_counts)
 
 if __name__ == "__main__":
   app.run(debug=True)
