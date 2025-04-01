@@ -37,12 +37,13 @@
           ['Velociraptor (swift robber)', 1.8]]);
 
         var options = {
-          title: 'Lengths of dinosaurs, in meters',
-          legend: { position: 'none' },
-        };
+          title: 'Évolution des températures de la ville de Tawarano',
+          curveType: 'function',
+          legend: { position: 'bottom' }
+          };
 
-        var chart = new google.visualization.Histogram(document.getElementById('chart_div'));
-        chart.draw(data, options);
+        var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+          chart.draw(dataTable, options);
       }
     </script>
   </head>
