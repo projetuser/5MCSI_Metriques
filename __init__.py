@@ -35,6 +35,9 @@ def mongraphique():
 def mongraphique2():
     return render_template("graphique2.html")
 
+@app.route("/contact/")
+def contact():
+    return render_template("contact.html")
 
 if __name__ == "__main__":
   app.run(debug=True)
