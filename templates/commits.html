@@ -1,72 +1,36 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mes Commits</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f7fa;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-        }
-        h1 {
-            color: #4CAF50;
-            margin-top: 30px;
-        }
-        .container {
-            width: 80%;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-        }
-        .commits-list {
-            list-style-type: none;
-            padding: 0;
-        }
-        .commit-item {
-            background-color: #f1f1f1;
-            margin: 10px 0;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        .commit-item:nth-child(odd) {
-            background-color: #e7e7e7;
-        }
-        .commit-minute {
-            font-weight: bold;
-            color: #555;
-        }
-        .commit-count {
-            color: #4CAF50;
-            font-size: 1.2em;
-        }
-        .no-commit {
-            font-size: 1.2em;
-            color: red;
-            font-weight: bold;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Commits par minute</title>
+  <script src="https://www.gstatic.com/charts/loader.js"></script>
+  <script>
+    google.charts.load("current", { packages: ["corechart"] });
+    google.charts.setOnLoadCallback(drawChart);
+
+    function drawChart() {
+      fetch('/api/commits-per-minute/')
+        .then(response => response.json())
+        .then(data => {
+          const dataTable = google.visualization.arrayToDataTable(data);
+          const options = {
+            title: 'Histogramme des commits par minute',
+            hAxis: { title: 'Minute de l'heure' },
+            vAxis: { title: 'Nombre de commits' },
+            legend: 'none',
+          };
+          const chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
+          chart.draw(dataTable, options);
+        })
+        .catch(error => {
+          console.error('Erreur de chargement des données :', error);
+          document.getElementById('chart_div').innerHTML = "<p style='color:red;'>Erreur lors du chargement des données.</p>";
+        });
+    }
+  </script>
 </head>
 <body>
-    <h1>Nombre de Commits par Minute</h1>
-    <div class="container">
-        {% if commit_data[0].count == 0 %}
-            <p class="no-commit">Aucun commit trouvé.</p>
-        {% else %}
-            <ul class="commits-list">
-                {% for data in commit_data %}
-                    <li class="commit-item">
-                        <p>Minute : <span class="commit-minute">{{ data.minute }}</span></p>
-                        <p>Nombre de commits : <span class="commit-count">{{ data.count }}</span></p>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-    </div>
+  <h2 style="text-align:center;">Histogramme des commits par minute</h2>
+  <div id="chart_div" style="width: 900px; height: 500px; margin: auto;"></div>
 </body>
 </html>
