@@ -7,15 +7,11 @@
   <body>
     <div id="chart_div"></div>
     <script>
-      google.charts.load('current', { packages: ['corechart', 'histogram'] });
-      google.charts.setOnLoadCallback(drawChart);
-
-      function drawChart() {
-        // Récupération de données depuis notre API /tawarano/
-        fetch('/tawarano/')
-          .then(response => response.json())
-          .then(data => {
-            // Convertir les données récupérées en un tableau utilisable par Google Charts
+      fetch('/tawarano/')
+        .then(response => response.json())
+        .then(data => {
+          google.charts.load('current', { packages: ['corechart', 'histogram'] });
+          google.charts.setOnLoadCallback(function() {
             var dataTable = new google.visualization.DataTable();
             dataTable.addColumn('string', 'Date');
             dataTable.addColumn('number', 'Température (°C)');
@@ -25,7 +21,6 @@
               dataTable.addRow([date.toLocaleDateString(), entry.temp]);
             });
 
-            // Options du graphique à colonnes
             var options = {
               title: 'Évolution des températures de la ville de Tawarano',
               legend: { position: 'none' },
@@ -33,8 +28,8 @@
 
             var chart = new google.visualization.Histogram(document.getElementById('chart_div'));
             chart.draw(dataTable, options);
-          })
-      }
+          });
+        });
     </script>
   </body>
 </html>
