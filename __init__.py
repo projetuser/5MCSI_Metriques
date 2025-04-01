@@ -37,21 +37,30 @@ def contact():
 
 @app.route('/commits/')
 def commits():
-    # Récupérer les commits depuis l'API de GitHub
     url = 'https://api.github.com/repos/projetuser/5MCSI_Metriques/commits'
-    response = urlopen(url)
-    data = json.loads(response.read().decode('utf-8'))
     
-    # Extraire les minutes des commits
-    commit_times = []
+    try:
+        response = urlopen(url)
+        data = json.loads(response.read().decode('utf-8'))
+    except Exception as e:
+        data = []  # Si l'API ne répond pas, on utilise une liste vide
+
+    commit_minutes = []
+    
     for commit in data:
         commit_date = commit['commit']['author']['date']
-        # Convertir la date pour en extraire les minutes
         commit_datetime = datetime.strptime(commit_date, '%Y-%m-%dT%H:%M:%SZ')
-        commit_minutes = commit_datetime.minute
-        commit_times.append(commit_minutes)
+        commit_minutes.append(commit_datetime.strftime('%Y-%m-%d %H:%M'))
 
-    return render_template('commits.html', commit_times=commit_times)
+    commit_count = Counter(commit_minutes)
+
+    # Si aucun commit n'est trouvé, on ajoute une valeur par défaut
+    if not commit_count:
+        commit_data = [{'minute': 'Aucun commit', 'count': 0}]
+    else:
+        commit_data = [{'minute': minute, 'count': count} for minute, count in commit_count.items()]
+    
+    return render_template('commits.html', commit_data=commit_data)
 
 if __name__ == "__main__":
   app.run(debug=True)
