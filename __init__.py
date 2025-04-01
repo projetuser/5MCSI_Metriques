@@ -38,11 +38,10 @@ def contact():
 
 @app.route('/commits/')
 def commits():
-    # Récupérer les commits depuis l'API de GitHub
     url = 'https://api.github.com/repos/projetuser/5MCSI_Metriques/commits'
     response = urlopen(url)
     data = json.loads(response.read().decode('utf-8'))
-    
+
     # Extraire les minutes des commits
     commit_minutes = []
     for commit in data:
@@ -50,14 +49,21 @@ def commits():
         # Convertir la date pour en extraire les minutes
         commit_datetime = datetime.strptime(commit_date, '%Y-%m-%dT%H:%M:%SZ')
         commit_minutes.append(commit_datetime.strftime('%Y-%m-%d %H:%M'))  # Format : '2024-02-11 11:57'
-    
+
     # Compter le nombre de commits par minute
     commit_count = Counter(commit_minutes)
 
     # Convertir en une liste pour envoyer au template
     commit_data = [{'minute': minute, 'count': count} for minute, count in commit_count.items()]
-    
+
     return render_template('commits.html', commit_data=commit_data)
+
+# Route pour extraire les minutes d'un commit en fonction de sa date
+@app.route('/extract-minutes/<date_string>')
+def extract_minutes(date_string):
+    date_object = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%SZ')
+    minutes = date_object.minute
+    return jsonify({'minutes': minutes})
 
 if __name__ == "__main__":
   app.run(debug=True)
