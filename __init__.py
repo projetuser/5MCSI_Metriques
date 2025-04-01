@@ -43,15 +43,20 @@ def commits():
     data = json.loads(response.read().decode('utf-8'))
     
     # Extraire les minutes des commits
-    commit_times = []
+    commit_minutes = []
     for commit in data:
         commit_date = commit['commit']['author']['date']
         # Convertir la date pour en extraire les minutes
         commit_datetime = datetime.strptime(commit_date, '%Y-%m-%dT%H:%M:%SZ')
-        commit_minutes = commit_datetime.minute
-        commit_times.append(commit_minutes)
+        commit_minutes.append(commit_datetime.strftime('%Y-%m-%d %H:%M'))  # Format : '2024-02-11 11:57'
+    
+    # Compter le nombre de commits par minute
+    commit_count = Counter(commit_minutes)
 
-    return render_template('commits.html', commit_times=commit_times)
+    # Convertir en une liste pour envoyer au template
+    commit_data = [{'minute': minute, 'count': count} for minute, count in commit_count.items()]
+    
+    return render_template('commits.html', commit_data=commit_data)
 
 if __name__ == "__main__":
   app.run(debug=True)
