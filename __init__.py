@@ -35,25 +35,23 @@ def mongraphique2():
 def contact():
     return render_template("contact.html")
 
-@app.route("/commits/")
+@app.route('/commits/')
 def commits():
-    url = "https://github.com/projetuser/5MCSI_Metriques/blob/main/templates/commits"
+    # Récupérer les commits depuis l'API de GitHub
+    url = 'https://api.github.com/repos/projetuser/5MCSI_Metriques/commits'
     response = urlopen(url)
-    commits_data = json.loads(response.read().decode())
+    data = json.loads(response.read().decode('utf-8'))
     
-    commit_minutes = {}
-    
-    for commit in commits_data:
+    # Extraire les minutes des commits
+    commit_times = []
+    for commit in data:
         commit_date = commit['commit']['author']['date']
-        date_object = datetime.strptime(commit_date, '%Y-%m-%dT%H:%M:%SZ')
-        minute = date_object.minute
-        commit_minutes[minute] = commit_minutes.get(minute, 0) + 1
-    
-    data = [['Minute', 'Commits']]
-    for minute, count in sorted(commit_minutes.items()):
-        data.append([str(minute), count])
-    
-    return render_template("commits.html", data=data)
+        # Convertir la date pour en extraire les minutes
+        commit_datetime = datetime.strptime(commit_date, '%Y-%m-%dT%H:%M:%SZ')
+        commit_minutes = commit_datetime.minute
+        commit_times.append(commit_minutes)
+
+    return render_template('commits.html', commit_times=commit_times)
 
 if __name__ == "__main__":
   app.run(debug=True)
