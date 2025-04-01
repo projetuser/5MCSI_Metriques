@@ -37,7 +37,7 @@ def contact():
 
 @app.route("/commits/")
 def commits():
-    url = "https://api.github.com/repos/OpenRSI/5MCSI_Metriques/commits"
+    url = "https://github.com/projetuser/5MCSI_Metriques/blob/main/templates/commits"
     response = urlopen(url)
     commits_data = json.loads(response.read().decode())
     
