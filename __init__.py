@@ -4,7 +4,6 @@ from flask import json
 from datetime import datetime
 from urllib.request import urlopen
 import sqlite3
-from collections import Counter
                                                                                                                                        
 app = Flask(__name__)                                                                                                                  
                                                                                                                                        
@@ -46,24 +45,14 @@ def commits():
     commit_minutes = []
     for commit in data:
         commit_date = commit['commit']['author']['date']
-        # Convertir la date pour en extraire les minutes
-        commit_datetime = datetime.strptime(commit_date, '%Y-%m-%dT%H:%M:%SZ')
-        commit_minutes.append(commit_datetime.strftime('%Y-%m-%d %H:%M'))  # Format : '2024-02-11 11:57'
+        # Convertir la date et extraire la minute
+        date_object = datetime.strptime(commit_date, '%Y-%m-%dT%H:%M:%SZ')
+        commit_minutes.append(date_object.minute)
 
-    # Compter le nombre de commits par minute
-    commit_count = Counter(commit_minutes)
+    # Comptabiliser le nombre de commits par minute
+    minute_count = {minute: commit_minutes.count(minute) for minute in set(commit_minutes)}
 
-    # Convertir en une liste pour envoyer au template
-    commit_data = [{'minute': minute, 'count': count} for minute, count in commit_count.items()]
-
-    return render_template('commits.html', commit_data=commit_data)
-
-# Route pour extraire les minutes d'un commit en fonction de sa date
-@app.route('/extract-minutes/<date_string>')
-def extract_minutes(date_string):
-    date_object = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%SZ')
-    minutes = date_object.minute
-    return jsonify({'minutes': minutes})
+    return render_template('commits.html', minute_count=minute_count)
 
 if __name__ == "__main__":
   app.run(debug=True)
